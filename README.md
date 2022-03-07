@@ -1,3 +1,3 @@
 # cplus-shell
 
-仅供参考学习
+tiamtian的小工具，仅供参考。
