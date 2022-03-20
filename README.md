@@ -1,5 +1,4 @@
-# cplus-shell
-c++ 反向交互shell
+# c++ 反向交互shell
 
 采用AES加密的socket传输  
 
