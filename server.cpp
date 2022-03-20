@@ -11,6 +11,7 @@ typedef int socklen_t
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include "FunSer.h"
 
 int main()
 {
@@ -45,23 +46,31 @@ int main()
     bind(fd, (sockaddr *)&serverAddr, sizeof(serverAddr));
     listen(fd, 20);
     int client = accept(fd, (sockaddr *)&clientAddr, (socklen_t *)&sock_len);
-    char strmsg[256];
-    char result[4096];
-    recv(client, strmsg, sizeof(strmsg), 0);
+    
+    char strmsg[1024];
+    char buffer[1024];
+    int len;
+
+    recv(client, strmsg, 1024, 0);
     printf("%s\n", strmsg);
-    strcat(strmsg, "... from server");
-    send(client, strmsg, sizeof(strmsg), 0);
+    AES aes((unsigned char *)"tiamtian");
+    send(client, aes.temp, 1024, 0);
+
     while(1)
-    {
-        std::cout << "shell > ";
-        std::cin >> strmsg;
-        if(strcmp(strmsg, "exit") == 0)
+    {   
+        printf("shell:～#");
+        scanf("%s", buffer);
+        if(strcmp(buffer, "exit") == 0)
         {
             return 0;
         }
-        send(client, strmsg, sizeof(strmsg), 0);
-        recv(client, result, sizeof(result), 0);
-        std::cout << result << std::endl;
+        len = strlen(buffer);
+        aes.Cipher((void *)buffer);
+        send(client, buffer, 1024, 0);
+    
+        recv(client, strmsg, 4096, 0);
+        aes.InvCipher((void *)strmsg, 100);
+        printf("%s", strmsg);
     }
 #ifndef __WIN32
     close(client);
